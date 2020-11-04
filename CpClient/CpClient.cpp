@@ -1,58 +1,50 @@
 ﻿// C++のクライアントアプリ
 // サーバークライアント間の約束事はIPおよびポート番号を一致させること、閉じるときの合図を揃えておくことです
 
+#include <iostream>
+#include <sstream>
 #include <stdio.h>
 #include <winsock2.h>
-#include <ws2tcpip.h>
-#include <conio.h>
+#include <WS2tcpip.h>
+#pragma comment( lib, "ws2_32.lib" )
 
 int main()
 {
-	char buffer[1024];
-	int dstSocket;
-	struct sockaddr_in dstAddr;
-	WSADATA data;
-	WSAStartup(MAKEWORD(2, 0), &data);
+	WSADATA wsaData;
+	struct sockaddr_in server;
+	SOCKET sock;
+	char buf[1024];
+	WSAStartup(MAKEWORD(2, 0), &wsaData);
 
-	// sockaddr_in 構造体のセット
-	memset(&dstAddr, 0, sizeof(dstAddr));
-	dstAddr.sin_port = htons(3000);
-	dstAddr.sin_family = AF_INET;
-	dstAddr.sin_addr.s_addr = inet_addr("127.0.0.1");
+	// 接続先指定用構造体の準備
+	server.sin_family = AF_INET;
+	server.sin_port = htons(3000);
+	inet_pton(AF_INET, "127.0.0.1", &server.sin_addr.s_addr);
 
-	// ソケットの生成、ストリームを流す
-	dstSocket = socket(AF_INET, SOCK_STREAM, 0);
-
-	//接続
-	if (connect(dstSocket, (struct sockaddr*)&dstAddr, sizeof(dstAddr))) return(-1);
-	printf("connect with 127.0.0.1\n");
+	// サーバに接続
+	sock = socket(AF_INET, SOCK_STREAM, 0);
+	connect(sock, (struct sockaddr*)&server, sizeof(server));
 
 	int count = 0;
 	bool loop = true;
-	while (loop) {
-		if (_kbhit())
-		{
-			if (_getch() == 13)
-			{
-				const char* sendmsg = "finish\n";
-				send(dstSocket, sendmsg, 1024, 0);
-				printf("client -> %s\n", sendmsg);
-				loop = false;
-			}
-		}
+	while (loop)
+	{
 		//送信
 		count++;
-		const char* sendmsg = (char*)count;
-		send(dstSocket, sendmsg, 1024, 0);
-		printf("client -> %s\n", sendmsg);
+		std::string s = std::to_string(count);
+		s.push_back('\n');
+		const char* sendmsg = s.data();
+		send(sock, sendmsg, strlen(sendmsg), 0);
+		printf("client -> %s", sendmsg);
 		//受信
-		recv(dstSocket, buffer, 1024, 0);
-		printf("server -> %s\n", buffer);
+		memset(buf, 0, sizeof(buf));
+		int n = recv(sock, buf, sizeof(buf), 0);
+		printf("server -> %s\n", buf);
 		Sleep(500);
 	}
-
-	closesocket(dstSocket);
+	// winsock2の終了処理
 	WSACleanup();
-	return(0);
+
+	return 0;
 }
 

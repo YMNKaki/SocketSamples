@@ -1,63 +1,45 @@
 ﻿// C++のサーバーアプリ
 // サーバークライアント間の約束事はIPおよびポート番号を一致させること、閉じるときの合図を揃えておくことです
 
-#include <stdio.h>
-#include <WinSock2.h>
-#include <WS2tcpip.h>
+#include <winsock2.h>
 
 int main()
 {
-	// ポート番号，ソケット
-	int srcSocket;  // 自分
-	int dstSocket;  // 相手
+	WSADATA wsaData;
+	SOCKET sock0;
+	struct sockaddr_in addr;
+	struct sockaddr_in client;
+	int len;
+	SOCKET sock;
 
-	// sockaddr_in 構造体
-	struct sockaddr_in srcAddr;
-	struct sockaddr_in dstAddr;
-	int dstAddrSize = sizeof(dstAddr);
-	int status;
-	int numrcv;
-	char buffer[1024];
+	// winsock2の初期化
+	WSAStartup(MAKEWORD(2, 0), &wsaData);
 
-	WSADATA data;
-	WSAStartup(MAKEWORD(2, 0), &data);
+	// ソケットの作成
+	sock0 = socket(AF_INET, SOCK_STREAM, 0);
 
-	// sockaddr_in 構造体のセット
-	memset(&srcAddr, 0, sizeof(srcAddr));
-	srcAddr.sin_port = htons(3000);
-	srcAddr.sin_family = AF_INET;
-	srcAddr.sin_addr.s_addr = htonl(INADDR_ANY);
+	// ソケットの設定
+	addr.sin_family = AF_INET;
+	addr.sin_port = htons(12345);
+	addr.sin_addr.S_un.S_addr = INADDR_ANY;
+	bind(sock0, (struct sockaddr*)&addr, sizeof(addr));
 
-	// ソケットの生成（ストリーム型）
-	srcSocket = socket(AF_INET, SOCK_STREAM, 0);
-	// ソケットのバインド
-	bind(srcSocket, (struct sockaddr*)&srcAddr, sizeof(srcAddr));
-	// 接続の許可
-	listen(srcSocket, 1);
+	// TCPクライアントからの接続要求を待てる状態にする
+	listen(sock0, 5);
 
-	dstSocket = accept(srcSocket, (struct sockaddr*)&dstAddr, &dstAddrSize);
-	printf("connect %s \n", inet_ntoa(dstAddr.sin_addr));
+	// TCPクライアントからの接続要求を受け付ける
+	len = sizeof(client);
+	sock = accept(sock0, (struct sockaddr*)&client, &len);
 
-	int count = 0;
-	bool loop = true;
-	while (loop) {
-		//受信
-		numrcv = recv(dstSocket, buffer, sizeof(char) * 1024, 0);
-		if (numrcv == 0 || numrcv == -1) {
-			loop = false;
-			status = closesocket(dstSocket);
-			break;
-		}
-		printf("client -> %s", buffer);
-		for (int i = 0; i < numrcv; i++) { // bufの中の小文字を大文字に変換
-			buffer[i] = toupper(buffer[i]);
-		}
-		//送信
-		send(dstSocket, buffer, sizeof(char) * 1024, 0);
-		printf("server -> %s \n", buffer);
-	}
+	// 5文字送信
+	send(sock, "HELLO", 5, 0);
 
+	// TCPセッションの終了
+	closesocket(sock);
+
+	// winsock2の終了処理
 	WSACleanup();
-	return(0);
+
+	return 0;
 }
 
