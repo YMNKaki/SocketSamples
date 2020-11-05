@@ -22,6 +22,8 @@
 * C# -- .NETデスクトップ開発
 * JavaScript -- node.js開発、別途node.jsをインストール
 * Python -- Python開発、別途Pythonをインストール  
+node.jsとPythonは入れるのが面倒、もしくはサンプルをそのまま開くとパスが違うと言われて詰むかもしれないので、
+コードだけコピペして任意の環境で使っていただくほうが良いと思います。
   
 # How to Use
 どのプロジェクトもVisualStudioでデバッグを実行できますし、
