@@ -41,10 +41,10 @@ namespace SocketSamples
 
             //処理そのものは別スレッドを立てて行う
             //メインスレッドは、下のキー入力待ちの方へ進みます
+            var loop = true;
             Task.Run(() =>
             {
                 int count = 0;
-                var loop = true;
                 while (loop)
                 {
                     //送信部分
@@ -79,6 +79,7 @@ namespace SocketSamples
             {
                 if (Console.ReadKey().Key == ConsoleKey.Enter)
                 {
+                    loop = false;
                     var sendMsg = $"finish\n";
                     var sendBytes = Encoding.UTF8.GetBytes(sendMsg);
                     ns.Write(sendBytes, 0, sendBytes.Length);
@@ -103,6 +104,7 @@ namespace SocketSamples
                     break;
                 }
             }
+
         }
     }
 }
