@@ -1,6 +1,9 @@
 //node.js初めてさわってみた
 //ソケット通信でクライアントとして振る舞います
 
+const { clearInterval } = require('timers');
+
+let connection = true;
 let count = 0;
 const client = new require('net').Socket();
 client.setEncoding('utf8');
@@ -22,9 +25,14 @@ readline.question('Press Enter when you finish ', (answer) => {
 client.connect('3000', '127.0.0.1', function () {
     console.log('connected to server');
     setInterval(() => {
-        const sendmsg = `${++count}\n`;
-        client.write(sendmsg);
-        console.log(`client -> ${sendmsg}`);
+        if (connection == true) {
+            const sendmsg = `${++count}\n`;
+            client.write(sendmsg);
+            console.log(`client -> ${sendmsg}`);
+        }
+        else {
+            clearInterval();
+        }
     }, 500);
 });
 
@@ -32,7 +40,7 @@ client.connect('3000', '127.0.0.1', function () {
 client.on('data', data => {
     console.log(`server -> ${data}\n`);
     if (data == 'accept finish\n') {
-        client.close();
+        connection = false;
     }
 });
 

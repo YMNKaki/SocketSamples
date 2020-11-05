@@ -61,6 +61,7 @@ int main()
 	}
 
 	closesocket(sock);
+	closesocket(sock0);
 	WSACleanup();
 	return 0;
 }

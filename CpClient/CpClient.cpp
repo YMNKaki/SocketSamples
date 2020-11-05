@@ -61,6 +61,7 @@ int main()
 		Sleep(500);
 	}
 
+	closesocket(sock);
 	WSACleanup();
 	printf("Press Enter\n");
 	getchar();

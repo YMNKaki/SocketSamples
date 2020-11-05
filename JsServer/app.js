@@ -2,7 +2,7 @@
 //ソケット通信でサーバーとして振る舞います
 
 let count = 0;
-const server = require('net').createServer(socket => {
+require('net').createServer(socket => {
 
     socket.on('data', data => {
         console.log(`client -> ${data}`);
